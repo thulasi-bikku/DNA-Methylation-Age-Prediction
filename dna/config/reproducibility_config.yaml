@@ -1,0 +1,52 @@
+project: dna_methylation_age_prediction
+source_dataset: GSE40279
+samples: 656
+probes: 473034
+random_seed: 42
+split:
+  development_samples: 524
+  held_out_test_samples: 132
+  test_fraction: 0.20
+  rule: held_out_before_feature_selection
+feature_selection:
+  method: Pearson_correlation_with_chronological_age
+  ranking_scope: development_pool_only
+  ablation_feature_counts: [500, 1000, 3000]
+  final_requested_features: 3000
+  final_available_features: 2993
+transformer:
+  framework: Ludwig
+  version: 0.17.7
+  combiner: ft_transformer
+  optimizer: adam
+  epochs_max: 50
+  batch_size: 32
+  internal_split: [0.85, 0.15, 0.0]
+  training_samples: 446
+  validation_samples: 78
+  early_stopping_patience_evaluation_rounds: 5
+  observed_stop_epoch: 24
+  observed_best_epoch: 20
+  best_validation_mse: 82.2
+  hyperparameter_tuning: none
+baselines:
+  elastic_net: {model: ElasticNetCV, l1_ratio: 0.5_default, internal_cv_folds_test: 5, internal_cv_folds_in_5fold_cv: 3, max_iter: 5000, standardized: true}
+  xgboost: {n_estimators: 300, max_depth: 4, learning_rate: 0.05, random_state: 42}
+  lightgbm: {n_estimators: 300, max_depth: 4, learning_rate: 0.05, random_state: 42}
+  mlp:
+    hidden_layers: [128, 64]
+    alpha: 0.1
+    early_stopping: true
+    validation_fraction: 0.15
+    max_iter: 2000
+    note: alpha screened over [0.001, 0.01, 0.1, 1, 5] on the test set; reported as an optimistic reference only
+validation:
+  baseline_cv: {folds: 5, shuffle: true, random_seed: 42, metric: MAE, std: population}
+uncertainty:
+  ft_transformer_bootstrap_resamples: 1000
+  interval: 95_percentile_CI
+statistics:
+  paired_tests: [paired_t_test, wilcoxon_signed_rank]
+  multiple_testing: bonferroni_3_comparisons
+  effect_size: dz_equals_t_over_sqrt_n
+age_strata: ["<=40", "41-60", ">60"]

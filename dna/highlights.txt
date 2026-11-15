@@ -1,0 +1,5 @@
+Test set isolated before CpG ranking in whole-blood methylation age prediction
+Declarative FT-Transformer reached a held-out MAE of 8.264 years (R2 = 0.535)
+Elastic Net reached 3.621 years, less than half the transformer error
+Ranking held across cross-validation, ablation, paired tests and age strata
+Scripts and configuration files allow the full comparison to be repeated
